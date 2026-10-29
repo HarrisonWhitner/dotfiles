@@ -26,8 +26,6 @@ links=(
   "starship/starship.toml:$HOME/.config/starship.toml"
   "tmux/.tmux.conf:$HOME/.tmux.conf"
   "vim/.vimrc:$HOME/.vimrc"
-  "claude/statusline-command.sh:$HOME/.claude/statusline-command.sh"
-  "claude/settings.json:$HOME/.claude/settings.json"
 )
 
 # commands the configs and this script use, installed when missing
@@ -120,31 +118,6 @@ if [ "$(basename "${SHELL:-}")" = zsh ]; then
 else
   sudo chsh -s "$(command -v zsh)" "$USER"
   echo "default shell set to zsh, open a new terminal (and run tmux kill-server) to start using it"
-fi
-
-# --- install claude code plugins ---
-
-# add each marketplace and install each enabled plugin listed in claude/settings.json,
-# so plugins turned on with /plugin on one host get installed on the others too
-if command -v claude >/dev/null; then
-  python3 - "$repo/claude/settings.json" <<'EOF' |
-import json, sys
-s = json.load(open(sys.argv[1]))
-for m in s.get("extraKnownMarketplaces", {}).values():
-    print("marketplace", m["source"]["repo"])
-for plugin, enabled in s.get("enabledPlugins", {}).items():
-    if enabled:
-        print("plugin", plugin)
-EOF
-  while read -r kind name; do
-    if [ "$kind" = marketplace ]; then
-      claude plugin marketplace add "$name"
-    else
-      claude plugin install "$name" --scope user
-    fi
-  done
-else
-  echo "claude code not installed, skipping plugins (install it, then run this again)"
 fi
 
 # --- manual steps ---

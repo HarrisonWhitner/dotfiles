@@ -11,7 +11,6 @@ My shell, prompt & tool configs, kept in one repo so every host I work on can be
 | `brew` | A lovely, lovely package manager |
 | `vim` | Best terminal text editor |
 | `starship` | Rich terminal prompt features with good performance |
-| `claude` | Needs no introduction |
 
 ## Configuration files
 
@@ -24,8 +23,6 @@ Each file is linked from where its program expects it to this repo, so editing `
 | `starship/starship.toml` | `~/.config/starship.toml` | Two-line prompt: host, directory, git branch/status, worktree, venv, AWS, exit code, duration, time |
 | `tmux/.tmux.conf` | `~/.tmux.conf` | Mouse support, colors, scrollback, clipboard, `C-a` prefix |
 | `vim/.vimrc` | `~/.vimrc` | Editing preferences |
-| `claude/statusline-command.sh` | `~/.claude/statusline-command.sh` | Claude Code status line: cwd, branch, model, effort, context, 5h usage |
-| `claude/settings.json` | `~/.claude/settings.json` | Claude Code settings: model, theme, status line, and which plugins (and their marketplaces) to install || `setup.sh` | | Sets all of this up on a new machine |
 
 ## Setting up a new machine
 
@@ -57,12 +54,6 @@ Then open a new terminal, and run `tmux kill-server` if tmux was already running
     "font": { "face": "JetBrainsMono Nerd Font" }
 }
 ```
-
-## Claude Code settings
-
-Claude Code writes to `settings.json` itself, e.g. when changing `/config` or turning a plugin on with `/plugin`, and those changes land in this repo. It also rewrites the file on its own, reordering keys and sometimes changing values (like `"model": "opus"` to `"opus[1m]"`), so check `git diff` before committing rather than committing everything it changed.
-
-A plugin turned on with `/plugin` on one host is added to `enabledPlugins`, so after pushing, running `setup.sh` on another host installs it there.
 
 ## Making changes
 
