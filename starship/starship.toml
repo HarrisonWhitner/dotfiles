@@ -1,0 +1,137 @@
+# Harrison Whitner
+
+# 10/28/2026 - two line prompt matching the claude code status line colors
+
+# preview of the prompt (host dim, or magenta over ssh, cwd in blue, branch in green,
+# ahead in yellow, behind and uncommitted changes in red, venv in cyan, aws in orange)
+#
+#    windows-pc ~/dev-projects/web-crawler  mainline ↑2 ↓1 !? (worktree)  web-crawler  dev (us-west-2)
+#   ❯                                                                       ✘ 1 took 12s 14:12:07
+#
+# icons need a nerd font set in the terminal (e.g. JetBrainsMono Nerd Font), otherwise they show as boxes
+
+# left side, in order, then a line break and the ❯ on the line where commands are typed
+format = """
+${custom.local_host}\
+$hostname\
+$directory\
+$git_branch\
+$git_commit\
+$git_state\
+$git_status\
+${custom.worktree}\
+$python\
+$aws\
+$line_break\
+$character"""
+
+# right side of the command line, the exit code if the last command failed, how long it took, and when it finished
+right_format = "$status$cmd_duration$time"
+
+# blank line before each prompt so commands stand out from the output above them
+add_newline = true
+
+# host name shown dim on this machine, the custom module runs only when not over ssh
+[custom.local_host]
+when = '[ -z "$SSH_CONNECTION" ]'
+command = "hostname"
+shell = ["sh"]
+format = "[$output](bright-black) "
+
+# host name shown in bold magenta with a globe over ssh, so a remote shell is hard to miss
+[hostname]
+ssh_only = true
+ssh_symbol = " "
+format = "[$ssh_symbol$hostname]($style) "
+style = "bold purple"
+
+# full path from ~ instead of only the last 3 folders, so the location is always clear
+[directory]
+truncation_length = 100
+truncate_to_repo = false
+format = "[$path]($style)[$read_only]($read_only_style) "
+style = "blue"
+read_only = " 󰌾"
+
+# current branch
+[git_branch]
+symbol = " "
+format = "[$symbol$branch]($style) "
+style = "green"
+
+# short commit hash when HEAD is detached (no branch checked out)
+[git_commit]
+format = "[$hash$tag]($style) "
+style = "green"
+tag_symbol = "  "
+
+# shows mid-operation states like REBASING 2/5 or MERGING
+[git_state]
+style = "yellow"
+
+# commits ahead of origin in yellow, behind in red, then uncommitted changes in red
+# (+ staged, ! modified, ? untracked, = conflicts, $ stashed)
+[git_status]
+format = "($ahead_behind)([$all_status]($style) )"
+style = "red"
+ahead = "[↑${count}](yellow) "
+behind = "[↓${count}](red) "
+diverged = "[↑${ahead_count}](yellow) [↓${behind_count}](red) "
+up_to_date = ""
+modified = "!"
+staged = "+"
+untracked = "?"
+deleted = "!"
+renamed = "+"
+conflicted = "="
+stashed = '\$'
+
+# (worktree) when inside a linked git worktree instead of the main checkout
+[custom.worktree]
+when = '[ "$(git rev-parse --path-format=absolute --git-dir)" != "$(git rev-parse --path-format=absolute --git-common-dir)" ]'
+require_repo = true
+shell = ["sh"]
+format = "[\\(worktree\\)](bright-black) "
+
+# active python venv only, named after its project folder when the venv is called venv or .venv
+# (detect lists are emptied so it does not run python --version in every python project)
+[python]
+symbol = " "
+format = "[$symbol$virtualenv]($style) "
+style = "cyan"
+detect_extensions = []
+detect_files = []
+generic_venv_names = ["venv", ".venv"]
+
+# aws profile and region, shown when AWS_PROFILE or AWS_REGION is set
+# (force_display shows it even without a credentials file, since sso and aws login logins do not create one)
+[aws]
+force_display = true
+symbol = " "
+format = "[$symbol($profile )(\\($region\\) )]($style)"
+style = "208"
+
+# the ❯ turns red when the last command failed
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+# exit code of the last command when it failed
+[status]
+disabled = false
+symbol = "✘ "
+format = "[$symbol$status]($style) "
+style = "red"
+
+# how long the last command took, only when 3 seconds or longer
+[cmd_duration]
+min_time = 3000
+format = "[took $duration]($style) "
+style = "yellow"
+
+# the time the prompt was drawn, which is when the last command finished
+[time]
+disabled = false
+time_format = "%H:%M:%S"
+format = "[$time]($style)"
+style = "bright-black"
